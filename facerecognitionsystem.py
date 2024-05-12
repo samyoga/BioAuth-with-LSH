@@ -1,7 +1,6 @@
 from zipfile import ZipFile
-import os
-import tqdm
 import cv2
+import json
 
 # function to extract zip files
 def extract_images(zip_file):
@@ -16,7 +15,8 @@ def enroll_user(image_data):
         images_gallery = cv2.imread(f"GallerySet/subject{i}_img1.pgm")
         if i not in features_dict:
             features_dict[i] = []
-        features_dict[i].append(images_gallery)
+        features_dict[i].append(images_gallery.tolist())
+    
     return features_dict
 
 # function to verify users
@@ -30,5 +30,8 @@ if __name__ == "__main__":
 
     gallery_data = "GallerySet"
     features_dict = enroll_user(gallery_data)
-    print(features_dict)
+    
+    # dump dictionary to JSON
+    with open("gallery.json", "w") as outfile:
+        json.dump(features_dict, outfile)
     probe_data = "ProbeSet"
