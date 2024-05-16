@@ -48,6 +48,29 @@ def generate_random_matrices(num_matrices, matrix_size):
     # print(my_dict)
     return my_dict
 
+# function to hash the templates
+def hash_templates(input_array, random_matrices):
+    dot_products = {}
+
+    for input_key, input_value in input_array.items():
+        for random_key, random_value in random_matrices.items():
+            input_data = np.array(input_value)
+            random_data = np.array(random_value)
+            input_vectors = input_data.reshape(-1,3)
+            random_vectors = random_data.reshape(-1,3)
+            # print(random_data)
+            # print(random_data.size)
+            # mult_res = np.sum(np.multiply(input_data, random_value), axis=1)
+            mult_res = input_vectors * random_vectors
+            dot_products[(input_key, random_key)] = mult_res
+
+    print(dot_products)
+    # for random_matrix in random_matrices:
+    #     product = np.dot(random_matrix, input_array)
+    #     dot_products.append(product)
+    
+    return dot_products
+
 # function to verify users
 def verify_user():
     return 0
@@ -62,7 +85,7 @@ if __name__ == "__main__":
     num_matrices = 255
     matrix_size = 50
     random_matrices = generate_random_matrices(num_matrices, matrix_size)
-    # hash_templates(features_dict, random_matrices)
+    hash_templates(features_dict, random_matrices)
     
     # # dump dictionary to JSON
     # with open("gallery.json", "w") as outfile:
