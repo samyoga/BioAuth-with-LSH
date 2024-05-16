@@ -63,8 +63,9 @@ def hash_templates(input_array, random_matrices):
             input_vectors = input_data.reshape(-1)
             random_vectors = random_data.reshape(-1)
            
-           # multiply input vectors with random vectors
-            mult_res = input_vectors * random_vectors
+            # multiply input vectors with random vectors
+            # apply sign function to the product
+            mult_res = np.sign(input_vectors * random_vectors)
             dot_products[(input_key, random_key)] = mult_res
 
     print(dot_products)
