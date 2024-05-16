@@ -65,8 +65,8 @@ def hash_templates(input_array, random_matrices):
            
             # multiply input vectors with random vectors
             # apply sign function to the product
-            mult_res = np.sign(input_vectors * random_vectors)
-            dot_products[(input_key, random_key)] = mult_res
+            mult_res = np.sign(input_vectors * random_vectors).tolist()
+            dot_products[random_key] = mult_res
 
     print(dot_products)
     
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     num_matrices = 255
     matrix_size = 50
     random_matrices = generate_random_matrices(num_matrices, matrix_size)
-    hash_templates(features_dict, random_matrices)
+    hash_value = hash_templates(features_dict, random_matrices)
     
     # dump dictionary to JSON
     # with open("gallery.json", "w") as outfile:
@@ -94,4 +94,7 @@ if __name__ == "__main__":
 
     # with open("random_matrices.json", "w") as outfile:
     #     json.dump(random_matrices, outfile)
+
+    # with open("output.json", "w") as outfile:
+    #     json.dump(hash_value, outfile)
     probe_data = "ProbeSet"
