@@ -26,7 +26,7 @@ def enroll_user():
         # Update the dictionary with the modified value
         features_dict[key] = value_list[0]
 
-    print(features_dict)
+    # print(features_dict)
     return features_dict
 
 # function to generate random matrices
@@ -59,18 +59,15 @@ def hash_templates(input_array, random_matrices):
         for random_key, random_value in random_matrices.items():
             input_data = np.array(input_value)
             random_data = np.array(random_value)
-            # input_vectors = input_data.reshape(-1,3)
-            # random_vectors = random_data.reshape(-1,3)
-            # print(random_data)
-            # print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-            # mult_res = np.sum(np.multiply(input_data, random_value), axis=1)
-            # mult_res = input_vectors * random_vectors
-            # dot_products[(input_key, random_key)] = mult_res
 
-    # print(dot_products)
-    # for random_matrix in random_matrices:
-    #     product = np.dot(random_matrix, input_array)
-    #     dot_products.append(product)
+            input_vectors = input_data.reshape(-1)
+            random_vectors = random_data.reshape(-1)
+           
+           # multiply input vectors with random vectors
+            mult_res = input_vectors * random_vectors
+            dot_products[(input_key, random_key)] = mult_res
+
+    print(dot_products)
     
     return dot_products
 
