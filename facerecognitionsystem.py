@@ -15,15 +15,18 @@ def enroll_user():
     for i in range(1, 101):
         #read images from the gallery set
         images_gallery = cv2.imread(f"GallerySet/subject{i}_img1.pgm")
+        grayscale_image = cv2.cvtColor(images_gallery, cv2.COLOR_BGR2GRAY)
+
         if i not in features_dict:
             features_dict[i] = []
        
-        features_dict[i].append(images_gallery.tolist())
+        features_dict[i].append(grayscale_image.tolist())
     
     for key, value_list in features_dict.items():
         # Update the dictionary with the modified value
         features_dict[key] = value_list[0]
 
+    print(features_dict)
     return features_dict
 
 # function to generate random matrices
@@ -39,13 +42,13 @@ def generate_random_matrices(num_matrices, matrix_size):
     for _ in range(num_matrices):
         # Generate a random matrix with matrix_size
         # Each element of the matrix is a list with 3 random elements
-        random_matrix = np.random.randint(-100, 101, size=(matrix_size, matrix_size, 3))  
+        random_matrix = np.random.randint(-100, 101, size=(matrix_size, matrix_size))  
         random_matrices.append(random_matrix.tolist())
 
-    # print(random_keys)
+    # print(random_matrices)
+    # Converting to dictionary
     key_value_pairs = zip(random_keys, random_matrices)
     my_dict = dict(key_value_pairs)
-    # print(my_dict)
     return my_dict
 
 # function to hash the templates
@@ -56,15 +59,15 @@ def hash_templates(input_array, random_matrices):
         for random_key, random_value in random_matrices.items():
             input_data = np.array(input_value)
             random_data = np.array(random_value)
-            input_vectors = input_data.reshape(-1,3)
-            random_vectors = random_data.reshape(-1,3)
+            # input_vectors = input_data.reshape(-1,3)
+            # random_vectors = random_data.reshape(-1,3)
             # print(random_data)
-            # print(random_data.size)
+            # print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
             # mult_res = np.sum(np.multiply(input_data, random_value), axis=1)
-            mult_res = input_vectors * random_vectors
-            dot_products[(input_key, random_key)] = mult_res
+            # mult_res = input_vectors * random_vectors
+            # dot_products[(input_key, random_key)] = mult_res
 
-    print(dot_products)
+    # print(dot_products)
     # for random_matrix in random_matrices:
     #     product = np.dot(random_matrix, input_array)
     #     dot_products.append(product)
@@ -87,7 +90,7 @@ if __name__ == "__main__":
     random_matrices = generate_random_matrices(num_matrices, matrix_size)
     hash_templates(features_dict, random_matrices)
     
-    # # dump dictionary to JSON
+    # dump dictionary to JSON
     # with open("gallery.json", "w") as outfile:
     #     json.dump(features_dict, outfile)
 
