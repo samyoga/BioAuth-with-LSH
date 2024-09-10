@@ -9,8 +9,8 @@ def extract_images(zip_file):
     with ZipFile(zip_file, 'r') as zip_extract:
         zip_extract.extractall()
 
-# function to enroll users
-def enroll_user():
+# function to extract features of gallery data
+def extract_features_gallery():
     features_dict = {}
     for i in range(1, 101):
         #read images from the gallery set
@@ -25,6 +25,32 @@ def enroll_user():
     for key, value_list in features_dict.items():
         # Update the dictionary with the modified value
         features_dict[key] = value_list[0]
+
+    # print(features_dict)
+    return features_dict
+
+# function to extract features of probe data
+def extract_features_probe():
+    features_dict = {}
+    counter = 1
+    for i in range(1, 101):
+        #read images from the probe set
+        images_probe_1 = cv2.imread(f"ProbeSet/subject{i}_img2.pgm")
+        images_probe_2 = cv2.imread(f"ProbeSet/subject{i}_img3.pgm")
+        grayscale_probeimage1 = cv2.cvtColor(images_probe_1, cv2.COLOR_BGR2GRAY)
+        grayscale_probeimage2 = cv2.cvtColor(images_probe_2, cv2.COLOR_BGR2GRAY)
+
+        if i not in features_dict:
+            features_dict[i] = []
+        
+        features_dict[counter] = grayscale_probeimage1.tolist()
+        counter +=1
+        features_dict[counter] = grayscale_probeimage2.tolist()
+        counter +=1
+    
+    # for key, value_list in features_dict.items():
+    #     # Update the dictionary with the modified value
+    #     features_dict[key] = value_list[0]
 
     # print(features_dict)
     return features_dict
@@ -67,44 +93,17 @@ def hash_templates(input_array, random_matrices):
             # apply sign function to the product
             mult_res = np.sign(input_vectors * random_vectors).tolist()
             dot_products[random_key] = mult_res
-
-    # print(dot_products)
     
     return dot_products
 
-# function to verify users
-def verify_user():
-    features_dict = {}
-    counter = 1
-    for i in range(1, 101):
-        #read images from the probe set
-        images_probe_1 = cv2.imread(f"ProbeSet/subject{i}_img2.pgm")
-        images_probe_2 = cv2.imread(f"ProbeSet/subject{i}_img3.pgm")
-        grayscale_probeimage1 = cv2.cvtColor(images_probe_1, cv2.COLOR_BGR2GRAY)
-        grayscale_probeimage2 = cv2.cvtColor(images_probe_2, cv2.COLOR_BGR2GRAY)
-
-        if i not in features_dict:
-            features_dict[i] = []
-        
-        features_dict[counter] = grayscale_probeimage1.tolist()
-        counter +=1
-        features_dict[counter] = grayscale_probeimage2.tolist()
-        counter +=1
-    
-    # for key, value_list in features_dict.items():
-    #     # Update the dictionary with the modified value
-    #     features_dict[key] = value_list[0]
-
-    # print(features_dict)
-    return features_dict
 
 # Main function
 if __name__ == "__main__":
     extract_images("GallerySet.zip")
     extract_images("ProbeSet.zip")
 
-    features_dict_enroll = enroll_user()
-    features_dict_verify = verify_user()
+    features_dict_gallery = extract_features_gallery()
+    features_dict_probe = extract_features_probe()
 
     num_matrices = 255
     matrix_size = 50
@@ -116,19 +115,24 @@ if __name__ == "__main__":
     # Read the JSON file and load it into a dictionary
     with open('random_matrices.json', 'r') as file:
         random_matrices = json.load(file)
-    hash_value = hash_templates(features_dict_enroll, random_matrices)
+    hash_value_gallery = hash_templates(features_dict_gallery, random_matrices)
+    hash_value_probe = hash_templates(features_dict_probe, random_matrices)
+    
     
     # dump dictionary to JSON
     # with open("probe.json", "w") as outfile:
-    #     json.dump(features_dict_verify, outfile)
+    #     json.dump(features_dict_probe, outfile)
 
     # dump dictionary to JSON
     # with open("gallery.json", "w") as outfile:
-    #     json.dump(features_dict_enroll, outfile)
+    #     json.dump(features_dict_gallery, outfile)
 
     # with open("random_matrices.json", "w") as outfile:
     #     json.dump(random_matrices, outfile)
 
     with open("hashed_output_gallery.json", "w") as outfile:
-        json.dump(hash_value, outfile)
+        json.dump(hash_value_gallery, outfile)
+    
+    with open("hashed_output_probe.json", "w") as outfile:
+        json.dump(hash_value_probe, outfile)
     
