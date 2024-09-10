@@ -41,11 +41,11 @@ def generate_random_matrices(num_matrices, matrix_size):
 
     for _ in range(num_matrices):
         # Generate a random matrix with matrix_size
-        # Each element of the matrix is a list with 3 random elements
+        # Each element of the matrix is a list with 50 random elements
         random_matrix = np.random.randint(-100, 101, size=(matrix_size, matrix_size))  
+          # print(random_matrices)
         random_matrices.append(random_matrix.tolist())
 
-    # print(random_matrices)
     # Converting to dictionary
     key_value_pairs = zip(random_keys, random_matrices)
     my_dict = dict(key_value_pairs)
@@ -68,33 +68,67 @@ def hash_templates(input_array, random_matrices):
             mult_res = np.sign(input_vectors * random_vectors).tolist()
             dot_products[random_key] = mult_res
 
-    print(dot_products)
+    # print(dot_products)
     
     return dot_products
 
 # function to verify users
 def verify_user():
-    return 0
+    features_dict = {}
+    counter = 1
+    for i in range(1, 101):
+        #read images from the probe set
+        images_probe_1 = cv2.imread(f"ProbeSet/subject{i}_img2.pgm")
+        images_probe_2 = cv2.imread(f"ProbeSet/subject{i}_img3.pgm")
+        grayscale_probeimage1 = cv2.cvtColor(images_probe_1, cv2.COLOR_BGR2GRAY)
+        grayscale_probeimage2 = cv2.cvtColor(images_probe_2, cv2.COLOR_BGR2GRAY)
+
+        if i not in features_dict:
+            features_dict[i] = []
+        
+        features_dict[counter] = grayscale_probeimage1.tolist()
+        counter +=1
+        features_dict[counter] = grayscale_probeimage2.tolist()
+        counter +=1
+    
+    # for key, value_list in features_dict.items():
+    #     # Update the dictionary with the modified value
+    #     features_dict[key] = value_list[0]
+
+    # print(features_dict)
+    return features_dict
 
 # Main function
 if __name__ == "__main__":
     extract_images("GallerySet.zip")
     extract_images("ProbeSet.zip")
 
-    features_dict = enroll_user()
+    features_dict_enroll = enroll_user()
+    features_dict_verify = verify_user()
 
     num_matrices = 255
     matrix_size = 50
-    random_matrices = generate_random_matrices(num_matrices, matrix_size)
-    hash_value = hash_templates(features_dict, random_matrices)
+
+    # only run once at the beginnig
+    # generate_random_matrices(num_matrices, matrix_size)
+
+
+    # Read the JSON file and load it into a dictionary
+    with open('random_matrices.json', 'r') as file:
+        random_matrices = json.load(file)
+    hash_value = hash_templates(features_dict_enroll, random_matrices)
     
     # dump dictionary to JSON
+    # with open("probe.json", "w") as outfile:
+    #     json.dump(features_dict_verify, outfile)
+
+    # dump dictionary to JSON
     # with open("gallery.json", "w") as outfile:
-    #     json.dump(features_dict, outfile)
+    #     json.dump(features_dict_enroll, outfile)
 
     # with open("random_matrices.json", "w") as outfile:
     #     json.dump(random_matrices, outfile)
 
-    # with open("output.json", "w") as outfile:
-    #     json.dump(hash_value, outfile)
-    probe_data = "ProbeSet"
+    with open("hashed_output_gallery.json", "w") as outfile:
+        json.dump(hash_value, outfile)
+    
