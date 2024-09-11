@@ -96,6 +96,42 @@ def hash_templates(input_array, random_matrices):
     
     return dot_products
 
+def verify_users(hashed_gallery, hashed_probe, threshold = 0.8):
+    matches = {} # To store the best match for each probe
+
+    #Loop through each probe hash
+    for probe_key, probe_value in hashed_probe.items():
+        best_match_key = None
+        best_match_score = -1
+
+        # Convert the probe value to a numpy array 
+        probe_array = np.array(probe_value)
+
+        # Loop through each gallery hash
+        for gallery_key, gallery_value in hashed_gallery.items():
+            gallery_array = np.array(gallery_value)
+ 
+            # Ensure the gallery and probe arrays have the same shape before comparison
+            if probe_array.shape != gallery_array.shape:
+                continue
+
+            # Calculate similarity
+            similarity = np.sum(probe_array == gallery_array)/probe_array.size
+
+            #keep track of the best match
+            if similarity > best_match_score:
+                best_match_score = similarity
+                best_match_key = gallery_key
+
+        # Store the best match if it exceeds the similarity threshold
+        if best_match_score >= threshold:
+            matches[probe_key] = best_match_key
+        else:
+            matches[probe_key] = "No match found"
+
+
+    return matches
+
 
 # Main function
 if __name__ == "__main__":
@@ -130,9 +166,22 @@ if __name__ == "__main__":
     # with open("random_matrices.json", "w") as outfile:
     #     json.dump(random_matrices, outfile)
 
-    with open("hashed_output_gallery.json", "w") as outfile:
-        json.dump(hash_value_gallery, outfile)
+    # with open("hashed_output_gallery.json", "w") as outfile:
+    #     json.dump(hash_value_gallery, outfile, indent=4)
     
-    with open("hashed_output_probe.json", "w") as outfile:
-        json.dump(hash_value_probe, outfile)
+    # with open("hashed_output_probe.json", "w") as outfile:
+    #     json.dump(hash_value_probe, outfile, indent=4)
     
+    #Load hashed gallery and hashed probe from JSON
+    with open('hashed_output_gallery.json', 'r') as gallery_file:
+        hashed_gallery = json.load(gallery_file)
+
+    with open('hashed_output_probe.json', 'r') as probe_file:
+        hashed_probe = json.load(probe_file)
+
+    #perform user verification
+    matches = verify_users(hashed_gallery, hashed_probe, threshold=0.8)
+
+    #output results
+    for probe, gallery in matches.items():
+        print(f"Probe {probe} matches with Gallery {gallery}")
