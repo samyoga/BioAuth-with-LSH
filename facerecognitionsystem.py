@@ -75,63 +75,152 @@ def generate_random_matrices(num_matrices, matrix_size):
     # Converting to dictionary
     key_value_pairs = zip(random_keys, random_matrices)
     my_dict = dict(key_value_pairs)
+
+    print(my_dict)
     return my_dict
 
-# function to hash the templates
-def hash_templates(input_array, random_matrices):
-    dot_products = {}
+# # function to hash the templates
+# def hash_templates(input_array, random_matrices):
+#     dot_products = {}
 
-    for input_key, input_value in input_array.items():
-        for random_key, random_value in random_matrices.items():
-            input_data = np.array(input_value)
-            random_data = np.array(random_value)
+#     for input_key, input_value in input_array.items():
+#         for random_key, random_value in random_matrices.items():
+#             input_data = np.array(input_value)
+#             random_data = np.array(random_value)
 
-            input_vectors = input_data.reshape(-1)
-            random_vectors = random_data.reshape(-1)
+#             input_vectors = input_data.reshape(-1)
+#             random_vectors = random_data.reshape(-1)
            
-            # multiply input vectors with random vectors
-            # apply sign function to the product
-            mult_res = np.sign(input_vectors * random_vectors).tolist()
-            dot_products[random_key] = mult_res
+#             # multiply input vectors with random vectors
+#             # apply sign function to the product
+#             mult_res = np.sign(input_vectors * random_vectors).tolist()
+#             dot_products[random_key] = mult_res
     
-    return dot_products
+#     return dot_products
 
-def verify_users(hashed_gallery, hashed_probe, threshold = 0.8):
-    matches = {} # To store the best match for each probe
+def multiply_structures(structure1, structure2):
+    # Intitalize dictionary to store the results
+    result = {}
 
-    #Loop through each probe hash
-    for probe_key, probe_value in hashed_probe.items():
+    # Iterate through each key in first structure
+    for key1, matrix1 in structure1.items():
+        matrix1 = np.array(matrix1) # convert list to numpy array
+
+        # create a sub-dictionary for each key in structure1
+        result[key1] = {}
+
+        #Iterate through each key in the second structure
+        for key2, matrix2 in structure2.items():
+            matrix2 = np.array(matrix2) # convert list to numpy array
+
+            # Ensure both matrices are 50*50 before multiplication 
+            if matrix1.shape == matrix2.shape:
+                #Perform element-wise multiplication (use np.dot for matrix multiplication)
+                multiplied_matrix = np.multiply(matrix1, matrix2)
+
+                #Apply the sign function to the multiplied matrix
+                signed_matrix = np.sign(multiplied_matrix)
+
+                # Convert the result back to list and store in the result dictionary
+                result[key1][key2] = signed_matrix.tolist()
+
+            else:
+                print(f"Matrix dimensions don't match for {key1} and {key2}.")
+
+
+    return result
+
+def compute_similarity(matrix1, matrix2):
+    """
+    Compute the similarity between two matrices.
+    For signed matrices, you can use Hamming distance or another suitable metric.
+    """
+    # Flatten the matrices to compare element-wise
+    flat_matrix1 = np.array(matrix1).flatten()
+    flat_matrix2 = np.array(matrix2).flatten()
+
+    # print(flat_matrix1)
+    
+    # Compute similarity (e.g., Hamming distance for binary data)
+    similarity = np.sum(flat_matrix1 == flat_matrix2) / len(flat_matrix1)
+    return similarity
+
+def find_best_matches(hashed_gallery, hashed_probe, threshold=0.8):
+    """
+    Find the best matches between gallery and probe data based on similarity.
+    """
+    matches = {}
+
+    for gallery_key, gallery_data in hashed_gallery.items():
+    
         best_match_key = None
         best_match_score = -1
-
-        # Convert the probe value to a numpy array 
-        probe_array = np.array(probe_value)
-
-        # Loop through each gallery hash
-        for gallery_key, gallery_value in hashed_gallery.items():
-            gallery_array = np.array(gallery_value)
- 
-            # Ensure the gallery and probe arrays have the same shape before comparison
-            if probe_array.shape != gallery_array.shape:
-                continue
-
-            # Calculate similarity
-            similarity = np.sum(probe_array == gallery_array)/probe_array.size
-
-            #keep track of the best match
-            if similarity > best_match_score:
-                best_match_score = similarity
-                best_match_key = gallery_key
-
-        # Store the best match if it exceeds the similarity threshold
+        
+        for probe_key, probe_data in hashed_probe.items():
+            # Compute similarity for each matrix
+            
+            for gallery_subkey, gallery_matrix in gallery_data.items():
+                for probe_subkey, probe_matrix in probe_data.items():
+                    similarity = compute_similarity(gallery_matrix, probe_matrix)
+                    
+                    if similarity > best_match_score:
+                        best_match_score = similarity
+                        best_match_key = probe_key
+            
         if best_match_score >= threshold:
-            matches[probe_key] = best_match_key
+            matches[gallery_key] = best_match_key
         else:
-            matches[probe_key] = "No match found"
-
+            matches[gallery_key] = "No match found"
 
     return matches
 
+
+# def verify_users(hashed_gallery, hashed_probe, threshold = 0.5):
+#     """
+#     Compare hashed_gallery and hashed_probe to find the best match for each probe.
+    
+#     Parameters:
+#     - hashed_gallery: A dictionary of hashed gallery templates
+#     - hashed_probe: A dictionary of hashed probe templates
+#     - threshold: A similarity threshold for determining a match
+    
+#     Returns:
+#     - matches: A dictionary mapping each probe to its best gallery match or 'No match found'
+#     """
+
+#     matches = {} # To store the best match for each probe
+
+#     #Loop through each probe hash
+#     for probe_key, probe_value in hashed_probe.items():
+#         best_match_key = None
+#         best_match_score = -1
+
+#         # Convert the probe value to a numpy array 
+#         probe_array = np.array(probe_value)
+
+#         # Loop through each gallery hash
+#         for gallery_key, gallery_value in hashed_gallery.items():
+#             gallery_array = np.array(gallery_value)
+ 
+#             # Ensure the gallery and probe arrays have the same shape before comparison
+#             if probe_array.shape != gallery_array.shape:
+#                 continue
+
+#             # Calculate similarity using hamming distance
+#             similarity = np.sum(probe_array == gallery_array)/probe_array.size
+
+#             #keep track of the best match
+#             if similarity > best_match_score:
+#                 best_match_score = similarity
+#                 best_match_key = gallery_key
+
+#         # Store the best match if it exceeds the similarity threshold
+#         if best_match_score >= threshold:
+#             matches[probe_key] = best_match_key
+#         else:
+#             matches[probe_key] = "No match found"
+
+#     return matches
 
 # Main function
 if __name__ == "__main__":
@@ -141,20 +230,30 @@ if __name__ == "__main__":
     features_dict_gallery = extract_features_gallery()
     features_dict_probe = extract_features_probe()
 
-    num_matrices = 255
+    num_matrices = 5
     matrix_size = 50
 
     # only run once at the beginnig
-    # generate_random_matrices(num_matrices, matrix_size)
+    # random_matrix = generate_random_matrices(num_matrices, matrix_size)
 
+    # with open("random_matrix.json", "w") as outfile:
+    #     json.dump(random_matrix, outfile)
 
     # Read the JSON file and load it into a dictionary
-    with open('random_matrices.json', 'r') as file:
-        random_matrices = json.load(file)
-    hash_value_gallery = hash_templates(features_dict_gallery, random_matrices)
-    hash_value_probe = hash_templates(features_dict_probe, random_matrices)
+    with open('random_matrix.json', 'r') as file:
+        random_matrix = json.load(file)
+
+    multiply1 = multiply_structures(features_dict_gallery, random_matrix)
+    multiply2 = multiply_structures(features_dict_probe, random_matrix)
+    # hash_value_gallery = hash_templates(features_dict_gallery, random_matrices)
+    # hash_value_probe = hash_templates(features_dict_probe, random_matrices)
     
-    
+    with open("multiply1.json", "w") as outfile:
+        json.dump(multiply1, outfile)
+
+    with open("multiply2.json", "w") as outfile:
+        json.dump(multiply2, outfile)
+
     # dump dictionary to JSON
     # with open("probe.json", "w") as outfile:
     #     json.dump(features_dict_probe, outfile)
@@ -173,15 +272,17 @@ if __name__ == "__main__":
     #     json.dump(hash_value_probe, outfile, indent=4)
     
     #Load hashed gallery and hashed probe from JSON
-    with open('hashed_output_gallery.json', 'r') as gallery_file:
-        hashed_gallery = json.load(gallery_file)
+    # with open('hashed_output_gallery.json', 'r') as gallery_file:
+    #     hashed_gallery = json.load(gallery_file)
 
-    with open('hashed_output_probe.json', 'r') as probe_file:
-        hashed_probe = json.load(probe_file)
+    # with open('hashed_output_probe.json', 'r') as probe_file:
+    #     hashed_probe = json.load(probe_file)
 
     #perform user verification
-    matches = verify_users(hashed_gallery, hashed_probe, threshold=0.8)
-
+    matches = find_best_matches(multiply1, multiply2, threshold=0.8)
+    # print(matches)
     #output results
-    for probe, gallery in matches.items():
-        print(f"Probe {probe} matches with Gallery {gallery}")
+    # for probe, gallery in matches.items():
+    #     print(f"Probe {probe} matches with Gallery {gallery}")
+    with open("matches.json", "w") as outfile:
+        json.dump(matches, outfile)
