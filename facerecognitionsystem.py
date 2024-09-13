@@ -13,14 +13,28 @@ def extract_images(zip_file):
 def extract_features_gallery():
     features_dict = {}
     for i in range(1, 101):
-        #read images from the gallery set
+        #read images from the gallery set and convert to grayscale image
         images_gallery = cv2.imread(f"GallerySet/subject{i}_img1.pgm")
         grayscale_image = cv2.cvtColor(images_gallery, cv2.COLOR_BGR2GRAY)
+
+        #converting grayscale to binary images using adaptive thresholding
+        # apply adapting thresholding using initial values
+        block_size = 11
+        constant = 2
+
+        binary_image = cv2.adaptiveThreshold(
+            grayscale_image,
+            255,
+            cv2.ADAPTIVE_THRESH_MEAN_C,
+            cv2.THRESH_BINARY,
+            block_size,
+            constant
+        )
 
         if i not in features_dict:
             features_dict[i] = []
        
-        features_dict[i].append(grayscale_image.tolist())
+        features_dict[i].append(binary_image.tolist())
     
     for key, value_list in features_dict.items():
         # Update the dictionary with the modified value
@@ -40,12 +54,35 @@ def extract_features_probe():
         grayscale_probeimage1 = cv2.cvtColor(images_probe_1, cv2.COLOR_BGR2GRAY)
         grayscale_probeimage2 = cv2.cvtColor(images_probe_2, cv2.COLOR_BGR2GRAY)
 
+        #converting grayscale to binary images using adaptive thresholding
+        # apply adapting thresholding using initial values
+        block_size = 11
+        constant = 2
+
+        binary_probeimage1 = cv2.adaptiveThreshold(
+            grayscale_probeimage1,
+            255,
+            cv2.ADAPTIVE_THRESH_MEAN_C,
+            cv2.THRESH_BINARY,
+            block_size,
+            constant
+        )
+
+        binary_probeimage2 = cv2.adaptiveThreshold(
+            grayscale_probeimage2,
+            255,
+            cv2.ADAPTIVE_THRESH_MEAN_C,
+            cv2.THRESH_BINARY,
+            block_size,
+            constant
+        )
+
         if i not in features_dict:
             features_dict[i] = []
         
-        features_dict[counter] = grayscale_probeimage1.tolist()
+        features_dict[counter] = binary_probeimage1.tolist()
         counter +=1
-        features_dict[counter] = grayscale_probeimage2.tolist()
+        features_dict[counter] = binary_probeimage2.tolist()
         counter +=1
     
     # for key, value_list in features_dict.items():
@@ -79,25 +116,6 @@ def generate_random_matrices(num_matrices, matrix_size):
     print(my_dict)
     return my_dict
 
-# # function to hash the templates
-# def hash_templates(input_array, random_matrices):
-#     dot_products = {}
-
-#     for input_key, input_value in input_array.items():
-#         for random_key, random_value in random_matrices.items():
-#             input_data = np.array(input_value)
-#             random_data = np.array(random_value)
-
-#             input_vectors = input_data.reshape(-1)
-#             random_vectors = random_data.reshape(-1)
-           
-#             # multiply input vectors with random vectors
-#             # apply sign function to the product
-#             mult_res = np.sign(input_vectors * random_vectors).tolist()
-#             dot_products[random_key] = mult_res
-    
-#     return dot_products
-
 def multiply_structures(structure1, structure2):
     # Intitalize dictionary to store the results
     result = {}
@@ -127,7 +145,6 @@ def multiply_structures(structure1, structure2):
             else:
                 print(f"Matrix dimensions don't match for {key1} and {key2}.")
 
-
     return result
 
 def compute_similarity(matrix1, matrix2):
@@ -140,10 +157,26 @@ def compute_similarity(matrix1, matrix2):
     flat_matrix2 = np.array(matrix2).flatten()
 
     # print(flat_matrix1)
+
+    # Compute the dot product
+    dot_product = np.dot(flat_matrix1, flat_matrix2)
+
+    # Compute the magnitudes (Euclidean norms)
+    magnitude1 = np.linalg.norm(flat_matrix1)
+    magnitude2 = np.linalg.norm(flat_matrix2)
+
+    # Handle division by zero case
+    if magnitude1 == 0 or magnitude2 == 0:
+        return 0  # If either vector is all zeros, return similarity of 0
+
+    # Compute the cosine similarity
+    cosine_sim = dot_product / (magnitude1 * magnitude2)
+
+    return cosine_sim
     
-    # Compute similarity (e.g., Hamming distance for binary data)
-    similarity = np.sum(flat_matrix1 == flat_matrix2) / len(flat_matrix1)
-    return similarity
+    # # Compute similarity (e.g., Hamming distance for binary data)
+    # similarity = np.sum(flat_matrix1 == flat_matrix2) / len(flat_matrix1)
+    # return similarity
 
 def find_best_matches(hashed_gallery, hashed_probe, threshold=0.8):
     """
