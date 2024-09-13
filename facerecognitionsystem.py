@@ -198,6 +198,26 @@ def find_best_matches(hashed_gallery, hashed_probe, threshold=0.8):
 
     return matches
 
+def generate_score_matrix(hashed_gallery, hashed_probe):
+    num_probes = len(hashed_probe)  # Number of probe images (200)
+    num_gallery = len(hashed_gallery)  # Number of gallery images (100)
+    
+    # Initialize the score matrix with zeros
+    score_matrix = np.zeros((num_probes, num_gallery))
+    
+    # Loop through each probe and gallery image
+    for probe_key, probe_data in hashed_probe.items():
+        for gallery_key, gallery_data in hashed_gallery.items():
+            # For each pair of probe and gallery, compute the similarity
+            for probe_subkey, probe_matrix in probe_data.items():
+                for gallery_subkey, gallery_matrix in gallery_data.items():
+                    # Compute the similarity score
+                    similarity = compute_similarity(probe_matrix, gallery_matrix)
+                    
+                    # Update the score matrix
+                    score_matrix[probe_key-1, gallery_key-1] = max(score_matrix[probe_key-1, gallery_key-1], similarity)
+
+    return score_matrix
 
 # Main function
 if __name__ == "__main__":
@@ -211,10 +231,10 @@ if __name__ == "__main__":
     matrix_size = 50
 
     # only run once at the beginnig
-    random_matrix = generate_random_matrices(num_matrices, matrix_size)
+    # random_matrix = generate_random_matrices(num_matrices, matrix_size)
 
-    with open("random_matrix.json", "w") as outfile:
-        json.dump(random_matrix, outfile)
+    # with open("random_matrix.json", "w") as outfile:
+    #     json.dump(random_matrix, outfile)
 
     # Read the JSON file and load it into a dictionary
     with open('random_matrix.json', 'r') as file:
@@ -223,22 +243,31 @@ if __name__ == "__main__":
     multiply1 = multiply_structures(features_dict_gallery, random_matrix)
     multiply2 = multiply_structures(features_dict_probe, random_matrix)
     
-    with open("multiply1.json", "w") as outfile:
-        json.dump(multiply1, outfile)
+    # with open("multiply1.json", "w") as outfile:
+    #     json.dump(multiply1, outfile)
 
-    with open("multiply2.json", "w") as outfile:
-        json.dump(multiply2, outfile)
-
-    # dump dictionary to JSON
-    with open("probe.json", "w") as outfile:
-        json.dump(features_dict_probe, outfile)
+    # with open("multiply2.json", "w") as outfile:
+    #     json.dump(multiply2, outfile)
 
     # dump dictionary to JSON
-    with open("gallery.json", "w") as outfile:
-        json.dump(features_dict_gallery, outfile)
+    # with open("probe.json", "w") as outfile:
+    #     json.dump(features_dict_probe, outfile)
+
+    # dump dictionary to JSON
+    # with open("gallery.json", "w") as outfile:
+    #     json.dump(features_dict_gallery, outfile)
 
     #perform user verification
     matches = find_best_matches(multiply1, multiply2, threshold=0.8)
     
-    with open("matches.json", "w") as outfile:
-        json.dump(matches, outfile)
+    # with open("matches.json", "w") as outfile:
+    #     json.dump(matches, outfile)
+
+    #generate score matrix
+    score_matrix = generate_score_matrix(multiply1, multiply2)
+    # dump score matrix to a json file
+    with open("score_matrix.json", "w") as outfile:
+        json.dump(score_matrix.tolist(), outfile)
+
+    print (score_matrix)
+
