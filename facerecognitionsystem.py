@@ -3,6 +3,7 @@ import cv2
 import json
 import numpy as np
 import re
+import matplotlib.pyplot as plt
 
 # function to extract zip files
 def extract_images(zip_file):
@@ -108,7 +109,7 @@ def generate_random_matrices(num_matrices, matrix_size):
         #convert matrix to list and store in dictionary
         binary_matrices_dict[i] = random_matrix.tolist()
         
-    print(binary_matrices_dict)
+    # print(binary_matrices_dict)
     return binary_matrices_dict
 
 def multiply_structures(structure1, structure2):
@@ -219,6 +220,59 @@ def generate_score_matrix(hashed_gallery, hashed_probe):
 
     return score_matrix
 
+def extract_genuine_impostor_scores(score_matrix):
+    genuine_scores = []
+    impostor_scores = []
+
+    num_probes, num_gallery = score_matrix.shape
+
+    for gallery_image in range(100):
+        for probe_image in range(200):
+            # if the image from the gallery dataset matches with image from probe dataset, consider the score from the matrix as genuine score else imposter
+            if probe_image == 2*gallery_image or probe_image == 2*gallery_image +1:
+                genuine_scores.append(score_matrix[probe_image][gallery_image])
+            else:
+                impostor_scores.append(score_matrix[probe_image][gallery_image])
+
+    # # Genuine scores (Diagonal for corresponding matches)
+    # for i in range(min(num_probes, num_gallery)):  # Only as many genuine matches as there are subjects
+    #     genuine_scores.append(score_matrix[i, i])  # e.g., probe1 with gallery1, probe2 with gallery2
+
+    # # Impostor scores (Off-diagonal for non-matches)
+    # for i in range(num_probes):
+    #     for j in range(num_gallery):
+    #         if i != j:  # Skip the genuine matches
+    #             impostor_scores.append(score_matrix[i, j])
+
+    return genuine_scores, impostor_scores
+
+def plot_histogram(genuine_scores, impostor_scores):
+    plt.figure(figsize=(10, 6))
+
+    # Plot histogram for genuine scores
+    plt.hist(genuine_scores, density=True, alpha=0.6, label="Genuine Scores", color="green", edgecolor='black')
+
+    # Plot histogram for impostor scores
+    plt.hist(impostor_scores, density=True, alpha=0.6, label="Impostor Scores", color="red", edgecolor='black')
+
+    # Add labels and legend
+    plt.xlabel('Score')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of Genuine and Impostor Scores')
+    plt.legend(loc='upper right')
+
+    # Display the plot
+    plt.show()
+
+def decidability_index(impostor_scr, genuine_scr):
+    mu_0 = np.mean(impostor_scr)
+    sigma_0 = np.std(impostor_scr)
+    mu_1 = np.mean(genuine_scr)
+    sigma_1 = np.std(genuine_scr)
+    d_prime = np.sqrt(2) * abs(mu_1 - mu_0) / np.sqrt(sigma_1**2 + sigma_0**2)
+
+    return d_prime
+
 # Main function
 if __name__ == "__main__":
     extract_images("GallerySet.zip")
@@ -266,8 +320,12 @@ if __name__ == "__main__":
     #generate score matrix
     score_matrix = generate_score_matrix(multiply1, multiply2)
     # dump score matrix to a json file
-    with open("score_matrix.json", "w") as outfile:
-        json.dump(score_matrix.tolist(), outfile)
+    # with open("score_matrix.json", "w") as outfile:
+    #     json.dump(score_matrix.tolist(), outfile)
 
-    print (score_matrix)
-
+    genuine_scores, impostor_scores = extract_genuine_impostor_scores(score_matrix)
+    # print ("genuine", genuine_scores)
+    # print("impostor", impostor_scores)
+    d_prime = decidability_index(impostor_scores, genuine_scores)
+    print ("Decidability index score for this face recognition system is", decidability_index)
+    plot_histogram(genuine_scores, impostor_scores)
