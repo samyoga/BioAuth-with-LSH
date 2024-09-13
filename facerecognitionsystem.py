@@ -94,27 +94,19 @@ def extract_features_probe():
 
 # function to generate random matrices
 def generate_random_matrices(num_matrices, matrix_size):
-    #Initialize a list to store matrices
-    random_matrices = []
-    random_keys = []
-    my_dict = {}
+    #Initialize a dictionary to store matrices
+    binary_matrices_dict = {}
 
     for i in range(1, num_matrices+1):
-        random_keys.append(i)
-
-    for _ in range(num_matrices):
         # Generate a random matrix with matrix_size
         # Each element of the matrix is a list with 50 random elements
-        random_matrix = np.random.randint(-100, 101, size=(matrix_size, matrix_size))  
-          # print(random_matrices)
-        random_matrices.append(random_matrix.tolist())
+        random_matrix = np.random.randint(0, 2, size=(matrix_size, matrix_size))
 
-    # Converting to dictionary
-    key_value_pairs = zip(random_keys, random_matrices)
-    my_dict = dict(key_value_pairs)
-
-    print(my_dict)
-    return my_dict
+        #convert matrix to list and store in dictionary
+        binary_matrices_dict[i] = random_matrix.tolist()
+        
+    print(binary_matrices_dict)
+    return binary_matrices_dict
 
 def multiply_structures(structure1, structure2):
     # Intitalize dictionary to store the results
