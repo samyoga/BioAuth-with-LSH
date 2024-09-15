@@ -273,6 +273,20 @@ def decidability_index(impostor_scr, genuine_scr):
 
     return d_prime
 
+def compute_cmc(genuine_scores, similarity_matrix):
+    cmc_scr = []
+
+    for m in range(1, len(genuine_scores) +1):
+        count = 0
+        for s in range(len(genuine_scores)):
+            sorted_cs = sorted(similarity_matrix[s], reverse=True)
+            if genuine_scores[s] in sorted_cs[:m]:
+                count +=1
+        cmc_scr.append((count/len(genuine_scores))*100)
+
+    return cmc_scr
+
+
 # Main function
 if __name__ == "__main__":
     extract_images("GallerySet.zip")
@@ -327,5 +341,5 @@ if __name__ == "__main__":
     # print ("genuine", genuine_scores)
     # print("impostor", impostor_scores)
     d_prime = decidability_index(impostor_scores, genuine_scores)
-    print ("Decidability index score for this face recognition system is", decidability_index)
-    plot_histogram(genuine_scores, impostor_scores)
+    print ("Decidability index score for this face recognition system is", d_prime)
+    # plot_histogram(genuine_scores, impostor_scores)
