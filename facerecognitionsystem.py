@@ -286,6 +286,41 @@ def compute_cmc(genuine_scores, similarity_matrix):
 
     return cmc_scr
 
+def plot_cmc_curve(cmc_val):
+    plt.figure(figsize=(12, 5))
+
+    plt.plot(range(1, len(cmc_val) + 1), cmc_val, label='CMC Curve')
+    plt.ylabel("Identification Rate (%)")
+    plt.xlabel("Rank-t")
+    plt.title("Cumulative Match Characteristic Curve")
+    # plt.grid(True)  # Add grid lines for better readability
+    plt.legend()
+    plt.show()
+
+def plot_roc_curve(genuine_scores, impostor_scores):
+    threshold_values = np.linspace(0,1,1000)
+    #Initialize empty list to store FAR and FRR values
+    false_acceptance_rate = []
+    false_rejection_rate = []
+
+    #Calculating FAR and FRR for each threshold value
+    for threshold in threshold_values:
+        FA_sum = np.sum(impostor_scores >= threshold)
+        far_val = FA_sum/len(impostor_scores)
+
+        FR_sum = np.sum(genuine_scores < threshold)
+        frr_val = FR_sum/len(genuine_scores)
+
+        false_acceptance_rate.append(far_val)
+        false_rejection_rate.append(frr_val)
+
+    #plotting the ROC curve
+    plt.plot(false_acceptance_rate, false_rejection_rate, color='red')
+    plt.plot([0, 1], [0, 1], color='yellow', lw=2, linestyle='--')
+    plt.title('Receiver Operating Curve')
+    plt.ylabel('False Rejection Rate (FRR)')
+    plt.xlabel("False Acceptance Rate (FAR)")
+    plt.show()
 
 # Main function
 if __name__ == "__main__":
@@ -343,3 +378,7 @@ if __name__ == "__main__":
     d_prime = decidability_index(impostor_scores, genuine_scores)
     print ("Decidability index score for this face recognition system is", d_prime)
     # plot_histogram(genuine_scores, impostor_scores)
+    # cmc_val = compute_cmc(genuine_scores, score_matrix)
+    # plot_cmc_curve(cmc_val)
+
+    plot_roc_curve(genuine_scores, impostor_scores)
