@@ -10,90 +10,141 @@ def extract_images(zip_file):
     with ZipFile(zip_file, 'r') as zip_extract:
         zip_extract.extractall()
 
-# function to extract features of gallery data
-def extract_features_gallery():
-    features_dict = {}
-    for i in range(1, 101):
-        #read images from the gallery set and convert to grayscale image
-        images_gallery = cv2.imread(f"GallerySet/subject{i}_img1.pgm")
-        grayscale_image = cv2.cvtColor(images_gallery, cv2.COLOR_BGR2GRAY)
+#Function to extract images from a dataset
+def extract_features(directory, num_subjects, image_pattern):
+    """
+    Extracts binary features from images of subjects, either for gallery or probe data.
 
-        #converting grayscale to binary images using adaptive thresholding
-        # apply adapting thresholding using initial values
-        block_size = 11
-        constant = 2
+    Args:
+        directory (str): The director containing the images (GallerySet and ProbeSet).   
+        num_subjects (int): The number of subjects in the dataset.
+        image_pattern (list): A list of image file patterns for each subject. 
+                              ['_img1.pgm'] for gallery, ['_img2.pgm', '_img3.pgm'] for probe
 
-        binary_image = cv2.adaptiveThreshold(
-            grayscale_image,
-            255,
-            cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY,
-            block_size,
-            constant
-        )
+    Returns:
+        dict: A dictionary with key is the image index and the value is the binary image feature.
+    """
 
-        # Convert binary image to 0s and 1s
-        binary_image = np.where(binary_image == 255, 1, 0)
-
-        if i not in features_dict:
-            features_dict[i] = []
-       
-        features_dict[i].append(binary_image.tolist())
-    
-    for key, value_list in features_dict.items():
-        # Update the dictionary with the modified value
-        features_dict[key] = value_list[0]
-
-    # print(features_dict)
-    return features_dict
-
-# function to extract features of probe data
-def extract_features_probe():
     features_dict = {}
     counter = 1
-    for i in range(1, 101):
-        #read images from the probe set
-        images_probe_1 = cv2.imread(f"ProbeSet/subject{i}_img2.pgm")
-        images_probe_2 = cv2.imread(f"ProbeSet/subject{i}_img3.pgm")
-        grayscale_probeimage1 = cv2.cvtColor(images_probe_1, cv2.COLOR_BGR2GRAY)
-        grayscale_probeimage2 = cv2.cvtColor(images_probe_2, cv2.COLOR_BGR2GRAY)
 
-        #converting grayscale to binary images using adaptive thresholding
-        # apply adapting thresholding using initial values
-        block_size = 11
-        constant = 2
+    for i in range(1, num_subjects + 1):
+        for pattern in image_pattern:
+            #Construct image file path
+            image_file = f"{directory}/subject{i}{pattern}"
 
-        binary_probeimage1 = cv2.adaptiveThreshold(
-            grayscale_probeimage1,
-            255,
-            cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY,
-            block_size,
-            constant
-        )
+            #read images and convert to grayscale image
+            images = cv2.imread(f"GallerySet/subject{i}_img1.pgm")
+            grayscale_image = cv2.cvtColor(images, cv2.COLOR_BGR2GRAY)
 
-        binary_probeimage2 = cv2.adaptiveThreshold(
-            grayscale_probeimage2,
-            255,
-            cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY,
-            block_size,
-            constant
-        )
+            #converting grayscale to binary images using adaptive thresholding
+            # apply adapting thresholding using initial values
+            block_size = 11
+            constant = 2
 
-        # Convert binary image to 0s and 1s
-        binary_probeimage1 = np.where(binary_probeimage1 == 255, 1, 0)
-        binary_probeimage2 = np.where(binary_probeimage2 == 255, 1, 0)
+            binary_image = cv2.adaptiveThreshold(
+                grayscale_image,
+                255,
+                cv2.ADAPTIVE_THRESH_MEAN_C,
+                cv2.THRESH_BINARY,
+                block_size,
+                constant
+            )
 
-        if i not in features_dict:
-            features_dict[i] = []
+            # Convert binary images to 0 and 1
+            binary_image = np.where(binary_image == 255,1,0)
+
+            #Store the binary image in a dictionary
+            features_dict[counter]=binary_image.tolist()
+            counter += 1
+
+    return features_dict
+
+
+# # function to extract features of gallery data
+# def extract_features_gallery():
+#     features_dict = {}
+#     for i in range(1, 101):
+#         #read images from the gallery set and convert to grayscale image
+#         images_gallery = cv2.imread(f"GallerySet/subject{i}_img1.pgm")
+#         grayscale_image = cv2.cvtColor(images_gallery, cv2.COLOR_BGR2GRAY)
+
+#         #converting grayscale to binary images using adaptive thresholding
+#         # apply adapting thresholding using initial values
+#         block_size = 11
+#         constant = 2
+
+#         binary_image = cv2.adaptiveThreshold(
+#             grayscale_image,
+#             255,
+#             cv2.ADAPTIVE_THRESH_MEAN_C,
+#             cv2.THRESH_BINARY,
+#             block_size,
+#             constant
+#         )
+
+#         # Convert binary image to 0s and 1s
+#         binary_image = np.where(binary_image == 255, 1, 0)
+
+#         if i not in features_dict:
+#             features_dict[i] = []
+       
+#         features_dict[i].append(binary_image.tolist())
+    
+#     for key, value_list in features_dict.items():
+#         # Update the dictionary with the modified value
+#         features_dict[key] = value_list[0]
+
+#     # print(features_dict)
+#     return features_dict
+
+# # function to extract features of probe data
+# def extract_features_probe():
+#     features_dict = {}
+#     counter = 1
+#     for i in range(1, 101):
+#         #read images from the probe set
+#         images_probe_1 = cv2.imread(f"ProbeSet/subject{i}_img2.pgm")
+#         images_probe_2 = cv2.imread(f"ProbeSet/subject{i}_img3.pgm")
+#         grayscale_probeimage1 = cv2.cvtColor(images_probe_1, cv2.COLOR_BGR2GRAY)
+#         grayscale_probeimage2 = cv2.cvtColor(images_probe_2, cv2.COLOR_BGR2GRAY)
+
+#         #converting grayscale to binary images using adaptive thresholding
+#         # apply adapting thresholding using initial values
+#         block_size = 11
+#         constant = 2
+
+#         binary_probeimage1 = cv2.adaptiveThreshold(
+#             grayscale_probeimage1,
+#             255,
+#             cv2.ADAPTIVE_THRESH_MEAN_C,
+#             cv2.THRESH_BINARY,
+#             block_size,
+#             constant
+#         )
+
+#         binary_probeimage2 = cv2.adaptiveThreshold(
+#             grayscale_probeimage2,
+#             255,
+#             cv2.ADAPTIVE_THRESH_MEAN_C,
+#             cv2.THRESH_BINARY,
+#             block_size,
+#             constant
+#         )
+
+#         # Convert binary image to 0s and 1s
+#         binary_probeimage1 = np.where(binary_probeimage1 == 255, 1, 0)
+#         binary_probeimage2 = np.where(binary_probeimage2 == 255, 1, 0)
+
+#         if i not in features_dict:
+#             features_dict[i] = []
         
-        features_dict[counter] = binary_probeimage1.tolist()
-        counter +=1
-        features_dict[counter] = binary_probeimage2.tolist()
-        counter +=1
+#         features_dict[counter] = binary_probeimage1.tolist()
+#         counter +=1
+#         features_dict[counter] = binary_probeimage2.tolist()
+#         counter +=1
 
-    # print(features_dict)
+#     # print(features_dict)
     return features_dict
 
 # function to generate random matrices
@@ -327,8 +378,8 @@ if __name__ == "__main__":
     extract_images("GallerySet.zip")
     extract_images("ProbeSet.zip")
 
-    features_dict_gallery = extract_features_gallery()
-    features_dict_probe = extract_features_probe()
+    features_dict_gallery = extract_features("GallerySet", 100, ['_img1.pgm'])
+    features_dict_probe = extract_features("ProbeSet", 100, ['_img2.pgm', '_img3.pgm'])
 
     num_matrices = 5
     matrix_size = 50
@@ -363,8 +414,8 @@ if __name__ == "__main__":
     #perform user verification
     matches = find_best_matches(multiply1, multiply2, threshold=0.8)
     
-    # with open("matches.json", "w") as outfile:
-    #     json.dump(matches, outfile)
+    with open("matches.json", "w") as outfile:
+        json.dump(matches, outfile)
 
     #generate score matrix
     score_matrix = generate_score_matrix(multiply1, multiply2)
