@@ -197,3 +197,4 @@ pyrightconfig.json
 *.json
 GallerySet/
 ProbeSet/
+*.png
