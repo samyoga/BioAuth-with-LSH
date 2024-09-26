@@ -36,15 +36,35 @@ def extract_features(directory, num_subjects, image_pattern):
             image_file = f"{directory}/subject{i}{pattern}"
 
             #read images and convert to grayscale image
-            images = cv2.imread(f"GallerySet/subject{i}_img1.pgm", cv2.IMREAD_GRAYSCALE)
+            images = cv2.imread(image_file, cv2.IMREAD_GRAYSCALE)
             # grayscale_image = cv2.cvtColor(images, cv2.COLOR_BGR2GRAY)
 
             # Ensure the image is 50x50 pixels
             if images.shape != (50, 50):
                 raise ValueError("Image must be 50x50 pixels")
 
+            # # Flatten the 2D image (50x50) to a 1D vector (2500 elements)
+            # input_vector = images.flatten()
+
+            #converting grayscale to binary images using adaptive thresholding
+            # apply adapting thresholding using initial values
+            block_size = 11
+            constant = 2
+
+            binary_image = cv2.adaptiveThreshold(
+                images,
+                255,
+                cv2.ADAPTIVE_THRESH_MEAN_C,
+                cv2.THRESH_BINARY,
+                block_size,
+                constant
+            )
+
+            # Convert binary images to 0 and 1
+            binary_image = np.where(binary_image == 255,1,0)
+
             # Flatten the 2D image (50x50) to a 1D vector (2500 elements)
-            input_vector = images.flatten()
+            input_vector = binary_image.flatten()
 
             #Store the image in a dictionary
             features_dict[counter]=input_vector.tolist()
@@ -60,7 +80,8 @@ def generate_random_matrices(num_matrices, matrix_size):
     for i in range(1, num_matrices+1):
         # Generate a random matrix with matrix_size
         # Each element of the matrix is a list with 50 random elements
-        random_matrix = np.random.randint(-100, 101, size=(matrix_size, matrix_size))
+        # random_matrix = np.random.randint(0, 2, size=(matrix_size, matrix_size))
+        random_matrix = np.random.choice([-1, 0, 1], size=(matrix_size, matrix_size))
 
         random_vector = random_matrix.flatten()
 
@@ -69,6 +90,7 @@ def generate_random_matrices(num_matrices, matrix_size):
         
     # print(binary_matrices_dict)
     return binary_matrices_dict
+
 
 def generate_matrix_vector_multiplication(feature_template, random_matrix):
     # Intitalize dictionary to store the results
@@ -131,19 +153,51 @@ def compute_cosine_similarity(matrix1, matrix2):
     return cosine_sim
 
 def hamming_similarity(probe_vector, gallery_vector):
-    """
-    Compute similarity between two vectors using hamming distance
-    """
-    probe_array = np.array(probe_vector)
-    gallery_array = np.array(gallery_vector)
+    # """
+    # Compute similarity between two vectors using hamming distance
+    # """
+    # probe_array = np.array(probe_vector)
+    # gallery_array = np.array(gallery_vector)
 
+    # distance = np.sum(probe_array != gallery_array)
+
+    # # Compute similarity as 1-(distance/total_bits)
+    # total_bits = len(probe_vector)
+    # similarity = 1 - (distance/total_bits)
+
+    # return similarity
+
+    """
+    Compute similarity between two vectors using Hamming distance, handling different vector lengths by truncation.
+    """
+    # Truncate vectors to the length of the shorter one
+    min_length = min(len(probe_vector), len(gallery_vector))
+    probe_array = np.array(probe_vector[:min_length])
+    gallery_array = np.array(gallery_vector[:min_length])
+
+    # Calculate Hamming distance
     distance = np.sum(probe_array != gallery_array)
 
     # Compute similarity as 1-(distance/total_bits)
-    total_bits = len(probe_vector)
-    similarity = 1 - (distance/total_bits)
+    similarity = 1 - (distance / min_length)
 
     return similarity
+
+def pearson_correlation(vector_a, vector_b):
+    assert len(vector_a) == len(vector_b), "Vectors must be the same length"
+    
+    # Compute the means of the vectors
+    mean_a = np.mean(vector_a)
+    mean_b = np.mean(vector_b)
+
+    # Compute the numerator (covariance) and denominator (product of standard deviations)
+    numerator = np.sum((vector_a - mean_a) * (vector_b - mean_b))
+    denominator = np.sqrt(np.sum((vector_a - mean_a) ** 2) * np.sum((vector_b - mean_b) ** 2))
+    
+    if denominator == 0:
+        return 0  # Handle case where denominator is 0 (no variation)
+    
+    return numerator / denominator
 
 def generate_score_matrix(hashed_gallery, hashed_probe):
     num_probes = len(hashed_probe)  # Number of probe images (e.g., 200)
@@ -179,12 +233,13 @@ def extract_genuine_impostor_scores(score_matrix):
     genuine_scores = []
     impostor_scores = []
 
-    for i in range(score_matrix.shape[0]):
-        for j in range(score_matrix.shape[1]):
-            if i==j:
-                genuine_scores.append(score_matrix[i][j])
-            else:
-                impostor_scores.append(score_matrix[i][j])
+    for gallery_image in range(100):
+        for probe_image in range(200):
+            # if the image from the gallery dataset matches with image from probe dataset, consider the score from the matrix as genuine score else imposter
+            if probe_image == 2*gallery_image or probe_image == 2*gallery_image + 1: 
+                genuine_scores.append(score_matrix[probe_image][gallery_image])
+            else : 
+                impostor_scores.append(score_matrix[probe_image][gallery_image])
 
     return genuine_scores, impostor_scores
 
@@ -223,15 +278,17 @@ def decidability_index(impostor_scr, genuine_scr):
 
 def compute_cmc(genuine_scores, similarity_matrix):
     cmc_scr = []
-
-    for m in range(1, len(genuine_scores) +1):
+    
+    for m in range(1, score_matrix.shape[1] + 1):
         count = 0
-        for s in range(len(genuine_scores)):
-            sorted_cs = sorted(similarity_matrix[s], reverse=True)
-            if genuine_scores[s] in sorted_cs[:m]:
-                count +=1
-        cmc_scr.append((count/len(genuine_scores))*100)
-
+        for i in range(score_matrix.shape[0]):  # Iterate over each probe
+            sorted_gallery_scores = np.argsort(score_matrix[i])[::-1]  # Sort gallery scores in descending order
+            
+            if i in sorted_gallery_scores[:m]:  # Check if genuine match is within the top 'm' ranks
+                count += 1
+            
+        cmc_scr.append((count / score_matrix.shape[0]) * 100)  # Compute identification rate for rank 'm'
+    
     return cmc_scr
 
 def plot_cmc_curve(cmc_val):
@@ -269,6 +326,22 @@ def plot_roc_curve(genuine_scores, impostor_scores):
     plt.ylabel('False Rejection Rate (FRR)')
     plt.xlabel("False Acceptance Rate (FAR)")
     plt.show()
+
+def calculate_min_max_val_rank(cmc_val):
+  low_val = min(cmc_val)
+  high_val = max(cmc_val)
+  low_rank = cmc_val.index(low_val) + 1
+  high_rank = cmc_val.index(high_val) + 1
+
+  return low_val, high_val, low_rank, high_rank
+
+def save_plot(plot_file, plot_func, *args):
+    if not os.path.isfile(plot_file):
+        plot_func(*args)  # Call the plotting function with arguments
+        plt.savefig(plot_file)
+        print(f"Plot saved as {plot_file}")
+    else:
+        print(f"{plot_file} already exists. Plot not saved.")
 
 # Main function
 if __name__ == "__main__":
@@ -330,7 +403,6 @@ if __name__ == "__main__":
 
 
     # Generate score matrix
-
     score_matrix_file = "score_matrix.json"
     if not os.path.isfile(score_matrix_file):
         score_matrix = generate_score_matrix(hashed_gallery, hashed_probe)
@@ -340,8 +412,10 @@ if __name__ == "__main__":
         with open(score_matrix_file, 'r') as file:
             score_matrix = json.load(file)
 
-    # print(score_matrix)
+   
     score_matrix = np.array(score_matrix)
+    print(score_matrix)
+    print(f"Score matrix shape: {score_matrix.shape}")
 
     genuine_scores, impostor_scores = extract_genuine_impostor_scores(score_matrix)
     print ("genuine", genuine_scores)
@@ -353,15 +427,19 @@ if __name__ == "__main__":
     # Save histogram plot if not already saved
     plot_histogram_file = "histogram.png"
     plot_histogram(genuine_scores, impostor_scores)
-    plt.savefig(plot_histogram_file)
+    # save_plot(plot_histogram_file, plot_histogram, genuine_scores, impostor_scores)
 
     # Save ROC curve plot if not already saved
     plot_roc_curve_file = "roc_curve.png"
     plot_roc_curve(genuine_scores, impostor_scores)
-    plt.savefig(plot_roc_curve_file)
+    # save_plot(plot_roc_curve_file, plot_roc_curve, genuine_scores, impostor_scores)
 
     plot_cmc_curve_file = "cmc.png"
     cmc_val = compute_cmc(genuine_scores, score_matrix)
+    low_val, high_val, low_rank, high_rank = calculate_min_max_val_rank(cmc_val)
+    print("The lowest value of the system is", low_val, "at Rank-", low_rank)
+    print("The highest value of the system is", high_val, "at Rank-", high_rank)
     plot_cmc_curve(cmc_val)
-    plt.savefig(plot_cmc_curve_file)
+    # save_plot(plot_cmc_curve_file, plot_cmc_curve, cmc_val)
+
 
