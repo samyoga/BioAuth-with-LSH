@@ -276,20 +276,42 @@ def decidability_index(impostor_scr, genuine_scr):
 
     return d_prime
 
-def compute_cmc(genuine_scores, similarity_matrix):
-    cmc_scr = []
+# def compute_cmc(genuine_scores, score_matrix):
+#     cmc_scr = []
     
-    for m in range(1, score_matrix.shape[1] + 1):
-        count = 0
-        for i in range(score_matrix.shape[0]):  # Iterate over each probe
-            sorted_gallery_scores = np.argsort(score_matrix[i])[::-1]  # Sort gallery scores in descending order
+#     for m in range(1, score_matrix.shape[1] + 1):
+#         count = 0
+#         for i in range(score_matrix.shape[0]):  # Iterate over each probe
+#             sorted_gallery_scores = np.argsort(score_matrix[i])[::-1]  # Sort gallery scores in descending order
             
-            if i in sorted_gallery_scores[:m]:  # Check if genuine match is within the top 'm' ranks
-                count += 1
+#             if i in sorted_gallery_scores[:m]:  # Check if genuine match is within the top 'm' ranks
+#                 count += 1
             
-        cmc_scr.append((count / score_matrix.shape[0]) * 100)  # Compute identification rate for rank 'm'
+#         cmc_scr.append((count / score_matrix.shape[0]) * 100)  # Compute identification rate for rank 'm'
     
-    return cmc_scr
+#     return cmc_scr
+
+def compute_cmc(score_matrix, num_probes, num_gallery):
+    cmc_scores = []
+    
+    for m in range(1, num_gallery + 1):
+        correct_matches = 0
+        
+        for probe_index in range(num_probes):
+            # Sort gallery scores for the current probe in descending order
+            sorted_gallery_indices = np.argsort(score_matrix[probe_index])[::-1]
+            
+            # The genuine match for this probe is at gallery_index = probe_index // 2 (since each subject has 2 probe images)
+            genuine_match_index = probe_index // 2  # Adjust this based on your dataset structure
+            
+            # Check if the genuine match is within the top 'm' ranked gallery images
+            if genuine_match_index in sorted_gallery_indices[:m]:
+                correct_matches += 1
+        
+        # Calculate the identification rate for rank 'm'
+        cmc_scores.append((correct_matches / num_probes) * 100)
+    
+    return cmc_scores
 
 def plot_cmc_curve(cmc_val):
     plt.figure(figsize=(12, 5))
@@ -368,7 +390,7 @@ if __name__ == "__main__":
         with open(feature_dict_probe_file, "r") as file:
             feature_dict_probe = json.load(file)
 
-    num_matrices = 256
+    num_matrices = 1000
     matrix_size = 50
     random_matrix_file = "random_matrix.json"
 
@@ -435,7 +457,7 @@ if __name__ == "__main__":
     # save_plot(plot_roc_curve_file, plot_roc_curve, genuine_scores, impostor_scores)
 
     plot_cmc_curve_file = "cmc.png"
-    cmc_val = compute_cmc(genuine_scores, score_matrix)
+    cmc_val = compute_cmc(score_matrix, 200, 100)
     low_val, high_val, low_rank, high_rank = calculate_min_max_val_rank(cmc_val)
     print("The lowest value of the system is", low_val, "at Rank-", low_rank)
     print("The highest value of the system is", high_val, "at Rank-", high_rank)
