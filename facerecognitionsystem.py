@@ -9,8 +9,12 @@ import os
 
 # function to extract zip files
 def extract_images(zip_file):
+    # #Define extraction path based on zipfile name
+    # extract_path = os.path.splitext(zip_file)[0]
+    # os.makedirs(extract_path, exist_ok=True)
+
     with ZipFile(zip_file, 'r') as zip_extract:
-        zip_extract.extractall()
+        zip_extract.extractall("Dataset")
 
 #Function to extract images from a dataset
 def extract_features(directory, num_subjects, image_pattern):
@@ -368,14 +372,14 @@ def save_plot(plot_file, plot_func, *args):
 # Main function
 if __name__ == "__main__":
     
-    extract_images("GallerySet.zip")
-    extract_images("ProbeSet.zip")
+    extract_images("Dataset/GallerySet.zip")
+    extract_images("Dataset/ProbeSet.zip")
 
     feature_dict_gallery_file = "gallery.json"
     feature_dict_probe_file = "probe.json"
 
     if not os.path.isfile(feature_dict_gallery_file):
-        features_dict_gallery = extract_features("GallerySet", 100, ['_img1.pgm'])
+        features_dict_gallery = extract_features("Dataset/GallerySet", 100, ['_img1.pgm'])
         with open(feature_dict_gallery_file, "w") as outfile:
             json.dump(features_dict_gallery, outfile)
     else:
@@ -383,7 +387,7 @@ if __name__ == "__main__":
             features_dict_gallery = json.load(file)
 
     if not os.path.isfile(feature_dict_probe_file):
-        feature_dict_probe = extract_features("ProbeSet", 100, ['_img2.pgm', '_img3.pgm'])
+        feature_dict_probe = extract_features("Dataset/ProbeSet", 100, ['_img2.pgm', '_img3.pgm'])
         with open(feature_dict_probe_file, "w") as outfile:
             json.dump(feature_dict_probe, outfile)
     else:
