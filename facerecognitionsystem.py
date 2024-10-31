@@ -62,6 +62,24 @@ def extract_features(directory, num_subjects, image_pattern):
 
     return features_dict
 
+# function to generate random matrices
+def generate_random_matrices(num_matrices, matrix_size):
+    #Initialize a dictionary to store matrices
+    binary_matrices_dict = {}
+
+    for i in range(1, num_matrices+1):
+        # Generate a random matrix with matrix_size
+        # Each element of the matrix is a list with 50 random elements
+        # random_matrix = np.random.randint(0, 2, size=(matrix_size, matrix_size))
+        random_matrix = np.random.choice([-1, 0, 1], size=(matrix_size, matrix_size))
+
+        random_vector = random_matrix.flatten()
+
+        #convert matrix to list and store in dictionary
+        binary_matrices_dict[i] = random_vector.tolist()
+        
+    # print(binary_matrices_dict)
+    return binary_matrices_dict
 
 # Main function
 if __name__ == "__main__":
@@ -79,3 +97,15 @@ if __name__ == "__main__":
             features_dict_gallery = json.load(file)
 
 
+    num_matrices = 1000
+    matrix_size = 50
+    random_matrix_file = "random_matrix.json"
+
+    if not os.path.isfile(random_matrix_file):
+        random_matrix = generate_random_matrices(num_matrices, matrix_size)
+        with open(random_matrix_file, "w") as outfile:
+            json.dump(random_matrix, outfile)
+
+    else:
+        with open(random_matrix_file, "r") as file:
+            random_matrix = json.load(file)
