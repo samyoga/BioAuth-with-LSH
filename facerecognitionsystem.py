@@ -81,20 +81,58 @@ def generate_random_matrices(num_matrices, matrix_size):
     # print(binary_matrices_dict)
     return binary_matrices_dict
 
+def generate_matrix_vector_multiplication(feature_template, random_matrix):
+    # Intitalize dictionary to store the results
+    hashed_result = {}
+    # #Intialize flattened data
+    # flattened_data = {}
+
+    for random_vector_id, random_vector in random_matrix.items():
+        assert len(random_vector) == 2500
+
+
+    # random_matrix_data = np.array(random_matrix['1'])
+    # assert random_matrix_data.shape == (2500, 2500) # check the size of random projection matrix
+
+    # For each feature vector, multiply it with the random projection matrix
+    for subject_id, feature_vector in feature_template.items():
+        feature_vector = np.array(feature_vector)
+        assert len(feature_vector) == 2500
+
+        #Initialize list to store hash code for this subject
+        hash_code = []
+
+        # Compute inner product with each random vector and apply sign function
+        for random_vector_id, random_vector in random_matrix.items():
+            random_vector = np.array(random_vector)
+
+            #compute inner product between two vectors. (1 * 2500) with (2500*1)
+            projected_feature_vector = np.dot(feature_vector, random_vector)
+
+            # apply sign function
+            signed_result = int(np.sign(projected_feature_vector))
+
+            # append sign result to hash code
+            hash_code.append(signed_result)
+
+        hashed_result[subject_id] = hash_code
+
+    return hashed_result
+
 # Main function
 if __name__ == "__main__":
     
-    extract_images("Dataset/UTKFace1.zip")
+    extract_images("Dataset/UTKGallery.zip")
 
-    feature_dict_utkface_file = "utkface.json"
+    feature_dict_utkgallery_file = "utkgallery.json"
 
-    if not os.path.isfile(feature_dict_utkface_file):
-        features_dict_utkface = extract_features("Dataset/UTKFace1", 1611, ['.jpg'])
-        with open(feature_dict_utkface_file, "w") as outfile:
-            json.dump(features_dict_utkface, outfile)
+    if not os.path.isfile(feature_dict_utkgallery_file):
+        features_dict_utkgallery = extract_features("Dataset/UTKFace1", 1611, ['.jpg'])
+        with open(feature_dict_utkgallery_file, "w") as outfile:
+            json.dump(features_dict_utkgallery, outfile)
     else:
-        with open(feature_dict_utkface_file, "r") as file:
-            features_dict_gallery = json.load(file)
+        with open(feature_dict_utkgallery_file, "r") as file:
+            features_dict_utkgallery = json.load(file)
 
 
     num_matrices = 1000
@@ -109,3 +147,13 @@ if __name__ == "__main__":
     else:
         with open(random_matrix_file, "r") as file:
             random_matrix = json.load(file)
+
+    hashed_enrolled_users_file = "hashed_enrolled.json"
+
+    if not os.path.isfile(hashed_enrolled_users_file):
+        hashed_enrolled = generate_matrix_vector_multiplication(features_dict_utkface, random_matrix)
+        with open(hashed_enrolled_users_file, "w") as outfile:
+            json.dump(hashed_enrolled, outfile)
+    else:
+        with open(hashed_enrolled_users_file, "r") as file:
+            hashed_enrolled = json.load(file)
