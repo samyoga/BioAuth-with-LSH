@@ -123,19 +123,29 @@ def generate_matrix_vector_multiplication(feature_template, random_matrix):
 if __name__ == "__main__":
     
     extract_images("Dataset/UTKGallery.zip")
+    extract_images("Dataset/UTKProbe.zip")
 
     feature_dict_utkgallery_file = "utkgallery.json"
+    feature_dict_utkprobe_file = "utkprobe.json"
 
     if not os.path.isfile(feature_dict_utkgallery_file):
-        features_dict_utkgallery = extract_features("Dataset/UTKFace1", 1611, ['.jpg'])
+        features_dict_utkgallery = extract_features("Dataset/UTKGallery", 1611, ['_img1.jpg'])
         with open(feature_dict_utkgallery_file, "w") as outfile:
             json.dump(features_dict_utkgallery, outfile)
     else:
         with open(feature_dict_utkgallery_file, "r") as file:
             features_dict_utkgallery = json.load(file)
 
+    if not os.path.isfile(feature_dict_utkprobe_file):
+        features_dict_utkprobe = extract_features("Dataset/UTKProbe", 1611, ['_img2.jpg', '_img3.jpg'])
+        with open(feature_dict_utkprobe_file, "w") as outfile:
+            json.dump(features_dict_utkprobe, outfile)
+    else:
+        with open(feature_dict_utkprobe_file, "r") as file:
+            features_dict_utkprobe = json.load(file)
 
-    num_matrices = 1000
+
+    num_matrices = 256
     matrix_size = 50
     random_matrix_file = "random_matrix.json"
 
@@ -149,11 +159,20 @@ if __name__ == "__main__":
             random_matrix = json.load(file)
 
     hashed_enrolled_users_file = "hashed_enrolled.json"
+    hashed_probe_users_file = "hashed_probe_users.json"
 
     if not os.path.isfile(hashed_enrolled_users_file):
-        hashed_enrolled = generate_matrix_vector_multiplication(features_dict_utkface, random_matrix)
+        hashed_enrolled = generate_matrix_vector_multiplication(features_dict_utkgallery, random_matrix)
         with open(hashed_enrolled_users_file, "w") as outfile:
             json.dump(hashed_enrolled, outfile)
     else:
         with open(hashed_enrolled_users_file, "r") as file:
             hashed_enrolled = json.load(file)
+
+    if not os.path.isfile(hashed_probe_users_file):
+        hashed_probe = generate_matrix_vector_multiplication(features_dict_utkprobe, random_matrix)
+        with open(hashed_probe_users_file, "w") as outfile:
+            json.dump(hashed_probe, outfile)
+    else:
+        with open(hashed_probe_users_file, "r") as file:
+            hashed_probe = json.load(file)      
