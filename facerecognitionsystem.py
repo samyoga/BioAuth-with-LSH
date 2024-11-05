@@ -18,18 +18,6 @@ def extract_images(zip_file):
 
 #Function to extract images from a dataset
 def extract_features(directory, num_subjects, image_pattern):
-    """
-    Extracts binary features from images of subjects, either for gallery or probe data.
-
-    Args:
-        directory (str): The director containing the images (GallerySet and ProbeSet).   
-        num_subjects (int): The number of subjects in the dataset.
-        image_pattern (list): A list of image file patterns for each subject. 
-                              ['_img1.pgm'] for gallery, ['_img2.pgm', '_img3.pgm'] for probe
-
-    Returns:
-        dict: A dictionary with key is the image index and the value is the binary image feature.
-    """
 
     features_dict = {}
     counter = 1
@@ -38,17 +26,19 @@ def extract_features(directory, num_subjects, image_pattern):
         for pattern in image_pattern:
             #Construct image file path
             image_file = f"{directory}/subject{i}{pattern}"
+           
+            #read images
+            images = cv2.imread(image_file)
+            if images is None: 
+                print(f"Warning: Could not load image at {image_file}. Skipping.")
+                continue # skip to the next image if loading fails
 
-            #read images and convert to grayscale image
-            images = cv2.imread(image_file, cv2.IMREAD_GRAYSCALE)
-            # grayscale_image = cv2.cvtColor(images, cv2.COLOR_BGR2GRAY)
+            #convert to grayscale image
+            grayscale_image = cv2.cvtColor(images, cv2.COLOR_BGR2GRAY)
 
-            # Ensure the image is 50x50 pixels
-            if images.shape != (50, 50):
-                raise ValueError("Image must be 50x50 pixels")
-
-            # # Flatten the 2D image (50x50) to a 1D vector (2500 elements)
-            # input_vector = images.flatten()
+            #Resize to 50*50 if necessary
+            if grayscale_image.shape !=(50,50):
+                grayscale_image = cv2.resize(grayscale_image, (50,50))
 
             #converting grayscale to binary images using adaptive thresholding
             # apply adapting thresholding using initial values
@@ -56,7 +46,7 @@ def extract_features(directory, num_subjects, image_pattern):
             constant = 2
 
             binary_image = cv2.adaptiveThreshold(
-                images,
+                grayscale_image,
                 255,
                 cv2.ADAPTIVE_THRESH_MEAN_C,
                 cv2.THRESH_BINARY,
@@ -64,11 +54,16 @@ def extract_features(directory, num_subjects, image_pattern):
                 constant
             )
 
+
             # Convert binary images to 0 and 1
             binary_image = np.where(binary_image == 255,1,0)
 
             # Flatten the 2D image (50x50) to a 1D vector (2500 elements)
             input_vector = binary_image.flatten()
+
+            # Ensure vector is 2500 elements long
+            if len(input_vector) != 2500:
+                input_vector = np.pad(input_vector, (0, 2500 - len(input_vector)), 'constant')
 
             #Store the image in a dictionary
             features_dict[counter]=input_vector.tolist()
@@ -237,8 +232,8 @@ def extract_genuine_impostor_scores(score_matrix):
     genuine_scores = []
     impostor_scores = []
 
-    for gallery_image in range(100):
-        for probe_image in range(200):
+    for gallery_image in range(152):
+        for probe_image in range(304):
             # if the image from the gallery dataset matches with image from probe dataset, consider the score from the matrix as genuine score else imposter
             if probe_image == 2*gallery_image or probe_image == 2*gallery_image + 1: 
                 genuine_scores.append(score_matrix[probe_image][gallery_image])
@@ -372,14 +367,14 @@ def save_plot(plot_file, plot_func, *args):
 # Main function
 if __name__ == "__main__":
     
-    extract_images("Dataset/GallerySet.zip")
-    extract_images("Dataset/ProbeSet.zip")
+    extract_images("Dataset/faces94Gallery.zip")
+    extract_images("Dataset/faces94Probe.zip")
 
-    feature_dict_gallery_file = "gallery.json"
-    feature_dict_probe_file = "probe.json"
+    feature_dict_gallery_file = "faces94gallery.json"
+    feature_dict_probe_file = "faces94probe.json"
 
     if not os.path.isfile(feature_dict_gallery_file):
-        features_dict_gallery = extract_features("Dataset/GallerySet", 100, ['_img1.pgm'])
+        features_dict_gallery = extract_features("Dataset/faces94Gallery", 152, ['_img1.jpg'])
         with open(feature_dict_gallery_file, "w") as outfile:
             json.dump(features_dict_gallery, outfile)
     else:
@@ -387,14 +382,14 @@ if __name__ == "__main__":
             features_dict_gallery = json.load(file)
 
     if not os.path.isfile(feature_dict_probe_file):
-        feature_dict_probe = extract_features("Dataset/ProbeSet", 100, ['_img2.pgm', '_img3.pgm'])
+        feature_dict_probe = extract_features("Dataset/faces94Probe", 304, ['_img2.jpg', '_img3.jpg'])
         with open(feature_dict_probe_file, "w") as outfile:
             json.dump(feature_dict_probe, outfile)
     else:
         with open(feature_dict_probe_file, "r") as file:
             feature_dict_probe = json.load(file)
 
-    num_matrices = 1000
+    num_matrices = 256
     matrix_size = 50
     random_matrix_file = "random_matrix.json"
 
