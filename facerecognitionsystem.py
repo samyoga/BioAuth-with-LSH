@@ -382,7 +382,7 @@ if __name__ == "__main__":
             features_dict_gallery = json.load(file)
 
     if not os.path.isfile(feature_dict_probe_file):
-        feature_dict_probe = extract_features("Dataset/faces94Probe", 304, ['_img2.jpg', '_img3.jpg'])
+        feature_dict_probe = extract_features("Dataset/faces94Probe", 152, ['_img2.jpg', '_img3.jpg'])
         with open(feature_dict_probe_file, "w") as outfile:
             json.dump(feature_dict_probe, outfile)
     else:
