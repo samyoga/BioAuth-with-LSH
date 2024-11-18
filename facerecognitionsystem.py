@@ -232,8 +232,8 @@ def extract_genuine_impostor_scores(score_matrix):
     genuine_scores = []
     impostor_scores = []
 
-    for gallery_image in range(152):
-        for probe_image in range(304):
+    for gallery_image in range(100):
+        for probe_image in range(200):
             # if the image from the gallery dataset matches with image from probe dataset, consider the score from the matrix as genuine score else imposter
             if probe_image == 2*gallery_image or probe_image == 2*gallery_image + 1: 
                 genuine_scores.append(score_matrix[probe_image][gallery_image])
@@ -324,7 +324,7 @@ def plot_cmc_curve(cmc_val):
     plt.show()
 
 def plot_roc_curve(genuine_scores, impostor_scores):
-    threshold_values = np.linspace(0,1,1000)
+    threshold_values = np.linspace(0,1,100)
     #Initialize empty list to store FAR and FRR values
     false_acceptance_rate = []
     false_rejection_rate = []
@@ -339,6 +339,9 @@ def plot_roc_curve(genuine_scores, impostor_scores):
 
         false_acceptance_rate.append(far_val)
         false_rejection_rate.append(frr_val)
+    
+    print("False Acceptance Rate", false_acceptance_rate)
+    print("False Rejection Rate", false_rejection_rate)
 
     #plotting the ROC curve
     plt.plot(false_acceptance_rate, false_rejection_rate, color='red')
@@ -389,7 +392,7 @@ if __name__ == "__main__":
         with open(feature_dict_probe_file, "r") as file:
             feature_dict_probe = json.load(file)
 
-    num_matrices = 256
+    num_matrices = 1000
     matrix_size = 50
     random_matrix_file = "random_matrix.json"
 
@@ -435,11 +438,11 @@ if __name__ == "__main__":
 
    
     score_matrix = np.array(score_matrix)
-    print(score_matrix)
-    print(f"Score matrix shape: {score_matrix.shape}")
+    # print(score_matrix)
+    # print(f"Score matrix shape: {score_matrix.shape}")
 
     genuine_scores, impostor_scores = extract_genuine_impostor_scores(score_matrix)
-    print ("genuine", genuine_scores)
+    # print ("genuine", genuine_scores)
     # # print("impostor", impostor_scores)
 
     d_prime = decidability_index(impostor_scores, genuine_scores)
