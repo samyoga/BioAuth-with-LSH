@@ -262,11 +262,17 @@ def plot_histogram(genuine_scores, impostor_scores):
     # Plot histogram for impostor scores
     plt.hist(impostor_scores, density=True, bins=30, alpha=0.6, label="Impostor Scores", color="red", edgecolor='black')
 
+    # Customizing font size and family
+    font_properties = {'family': 'Arial', 'weight': 'normal', 'size': 46}
+
     # Add labels and legend
-    plt.xlabel('Score')
-    plt.ylabel('Frequency')
-    plt.title('Histogram of Genuine and Impostor Scores')
-    plt.legend(loc='upper right')
+    plt.xlabel('Score', **font_properties)
+    plt.ylabel('Frequency', **font_properties)
+    plt.title('Histogram of Genuine and Impostor Scores', **font_properties)
+    plt.legend(loc='upper right', prop={'family': 'Arial', 'size': 36})
+    # Set font properties for axis ticks (x and y axis)
+    plt.xticks(fontsize=28, family='Arial')
+    plt.yticks(fontsize=28, family='Arial')
 
     # Display the plot
     plt.show()
@@ -329,7 +335,7 @@ def plot_cmc_curve(cmc_val):
     plt.show()
 
 def plot_roc_curve(genuine_scores, impostor_scores):
-    threshold_values = np.linspace(0,1,1000)
+    threshold_values = np.linspace(0,1,100)
     #Initialize empty list to store FAR and FRR values
     false_acceptance_rate = []
     false_rejection_rate = []
@@ -345,12 +351,38 @@ def plot_roc_curve(genuine_scores, impostor_scores):
         false_acceptance_rate.append(far_val)
         false_rejection_rate.append(frr_val)
 
-    #plotting the ROC curve
-    plt.plot(false_acceptance_rate, false_rejection_rate, color='red')
-    plt.plot([0, 1], [0, 1], color='yellow', lw=2, linestyle='--')
-    plt.title('Receiver Operating Curve')
-    plt.ylabel('False Rejection Rate (FRR)')
-    plt.xlabel("False Acceptance Rate (FAR)")
+     # Compute EER
+    far = np.array(false_acceptance_rate)
+    frr = np.array(false_rejection_rate)
+    abs_diff = np.abs(far - frr)
+    eer_index = np.argmin(abs_diff)
+    eer = (far[eer_index] + frr[eer_index]) / 2  # Average FAR and FRR at EER point
+    eer_threshold = threshold_values[eer_index]
+
+    print(f"EER: {eer:.4f}, EER Threshold: {eer_threshold:.4f}")
+    
+    # Plot ROC curve
+    plt.figure(figsize=(8, 6))
+    plt.plot(false_acceptance_rate, false_rejection_rate, color='red', linewidth=5, label='ROC Curve')
+    plt.plot([0, 1], [0, 1], color='green', lw=3, linestyle='--', label='Random Guess Line')
+
+    # Highlight EER point
+    plt.scatter([eer], [eer], color='blue', label=f'EER = {eer:.4f}', zorder=5)
+    plt.axvline(eer, color='blue', linestyle='--', label='EER Line')
+    plt.axhline(eer, color='blue', linestyle='--')
+
+    # Customizing font size and family
+    font_properties = {'family': 'Arial', 'weight': 'normal', 'size': 46}
+
+    # Add labels, title, and legend
+    plt.title('Receiver Operating Curve with EER', **font_properties)
+    plt.xlabel('False Acceptance Rate (FAR)', **font_properties)
+    plt.ylabel('False Rejection Rate (FRR)', **font_properties)
+    plt.grid(True)
+    plt.legend(loc='upper right', prop={'family': 'Arial', 'size': 36})
+    # Set font properties for axis ticks (x and y axis)
+    plt.xticks(fontsize=28, family='Arial')
+    plt.yticks(fontsize=28, family='Arial')
     plt.show()
 
 def calculate_min_max_val_rank(cmc_val):
@@ -394,7 +426,7 @@ if __name__ == "__main__":
         with open(feature_dict_probe_file, "r") as file:
             feature_dict_probe = json.load(file)
 
-    num_matrices = 1000
+    num_matrices = 256
     matrix_size = 50
     random_matrix_file = "random_matrix.json"
 
@@ -440,11 +472,11 @@ if __name__ == "__main__":
 
    
     score_matrix = np.array(score_matrix)
-    print(score_matrix)
-    print(f"Score matrix shape: {score_matrix.shape}")
+    # print(score_matrix)
+    # print(f"Score matrix shape: {score_matrix.shape}")
 
     genuine_scores, impostor_scores = extract_genuine_impostor_scores(score_matrix)
-    print ("genuine", genuine_scores)
+    # print ("genuine", genuine_scores)
     # # print("impostor", impostor_scores)
 
     d_prime = decidability_index(impostor_scores, genuine_scores)
