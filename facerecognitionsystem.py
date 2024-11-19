@@ -248,7 +248,7 @@ def extract_genuine_impostor_scores(score_matrix):
     return genuine_scores, impostor_scores
 
 def plot_histogram(genuine_scores, impostor_scores):
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(14.5, 12))
 
     # Check if both score lists are populated
     if len(genuine_scores) == 0:
@@ -362,7 +362,7 @@ def plot_roc_curve(genuine_scores, impostor_scores):
     print(f"EER: {eer:.4f}, EER Threshold: {eer_threshold:.4f}")
     
     # Plot ROC curve
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(12.5, 12.5))
     plt.plot(false_acceptance_rate, false_rejection_rate, color='red', linewidth=5, label='ROC Curve')
     plt.plot([0, 1], [0, 1], color='green', lw=3, linestyle='--', label='Random Guess Line')
 
