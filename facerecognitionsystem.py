@@ -364,7 +364,7 @@ def plot_roc_curve(genuine_scores, impostor_scores):
     # Plot ROC curve
     plt.figure(figsize=(12.5, 12.5))
     plt.plot(false_acceptance_rate, false_rejection_rate, color='red', linewidth=5, label='ROC Curve')
-    plt.plot([0, 1], [0, 1], color='green', lw=3, linestyle='--', label='Random Guess Line')
+    plt.plot([0, 1], [0, 1], color='green', lw=3, linestyle='--')
 
     # Highlight EER point
     plt.scatter([eer], [eer], color='blue', label=f'EER = {eer:.4f}', zorder=5)
