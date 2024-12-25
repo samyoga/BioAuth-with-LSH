@@ -217,7 +217,7 @@ def generate_score_matrix(hashed_gallery, hashed_probe):
             probe_vector = np.array(hashed_probe[probe_key])
             gallery_vector = np.array(hashed_gallery[gallery_key])
 
-            # # Ensure vectors are of the correct length
+            # Ensure vectors are of the correct length
             # assert len(probe_vector) == len(gallery_vector), "Probe and Gallery vectors must be of the same length."
 
             # Compute the similarity score using cosine similarity

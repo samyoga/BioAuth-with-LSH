@@ -1,6 +1,7 @@
 import numpy as np
 
 class SimilarityCalculator:
+    @staticmethod
     def compute_similarity(probe_vector, gallery_vector):
         """ 
         Compute similarity between two vectors using hamming distance
