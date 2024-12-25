@@ -66,3 +66,25 @@ The project is modularized into the following components:
     * Processed files in Files/.
     * Visualizations in Output/.
 
+## Contributing
+
+Contributions are welcome! To contribute:
+* Fork this repository.
+* Create a branch for your feature:
+    ```bash
+    git checkout -b feature-name
+
+* Commit and push your changes:
+    ```bash
+    git commit -m "Add feature description"
+    git push origin feature-name
+* Open a pull request.
+
+## License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT). 
+
+## Contact
+
+For questions or feedback, reach out to Samyoga Bhattarai at [bhattaraisamyoga@gmail.com].
+
