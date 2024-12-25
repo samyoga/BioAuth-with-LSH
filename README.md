@@ -8,8 +8,6 @@ This project implements a **secure face recognition system** using **SimHash** a
 
 - [Project Architecture](#project-architecture)
 - [Installation](#installation)
-- [Usage](#usage)
-- [File Structure](#file-structure)
 - [Steps](#steps)
 - [Contributing](#contributing)
 - [License](#license)
@@ -47,3 +45,24 @@ The project is modularized into the following components:
    ```bash
    git clone https://github.com/your-username/BioAuth-with-LSH.git
    cd BioAuth-with-LSH
+
+3. **Set up a virtual environment**:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+4. **Install dependencies**:
+    ```bash
+    pip install -r requirements.txt
+
+## Steps
+
+1. Ensure Python is installed on your system.
+2. **Prepare Dataset**: Place your dataset as zip files under the **Dataset/** folder.
+3. **Run the main script:**
+    ```bash
+    python main.py
+4. **Access the outputs:**
+    * Processed files in Files/.
+    * Visualizations in Output/.
+
