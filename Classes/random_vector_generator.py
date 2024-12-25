@@ -1,7 +1,7 @@
 import numpy as np
 
 class RandomVectorGenerator:
-    def __init__(self, num_matrices, matrix_size):
+    def __init__(self, num_matrices=256, matrix_size=50):
         self.num_matrices = num_matrices
         self.matrix_size = matrix_size
 

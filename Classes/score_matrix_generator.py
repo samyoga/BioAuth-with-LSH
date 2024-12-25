@@ -29,9 +29,22 @@ class ScoreMatrixGenerator:
 
                 # Update the score matrix
                 score_matrix[probe_index, gallery_index] = similarity
-                if probe_key.split('_')[0] == gallery_key.split('_')[0]:
-                    self.genuine_scores.append(similarity)
-                else:
-                    self.impostor_scores.append(similarity)
+                        
+        for gallery_image in range(num_gallery):
+            for probe_image in range(num_probes):
+                # if the image from the gallery dataset matches with image from probe dataset, consider the score from the matrix as genuine score else imposter
+                if probe_image == 2*gallery_image or probe_image == 2*gallery_image + 1: 
+                    self.genuine_scores.append(score_matrix[probe_image][gallery_image])
+                else : 
+                    self.impostor_scores.append(score_matrix[probe_image][gallery_image])
         
         return score_matrix
+    
+    def decidability_index(self):
+        mu_0 = np.mean(self.impostor_scores)
+        sigma_0 = np.std(self.impostor_scores)
+        mu_1 = np.mean(self.genuine_scores)
+        sigma_1 = np.std(self.genuine_scores)
+        d_prime = np.sqrt(2) * abs(mu_1 - mu_0) / np.sqrt(sigma_1**2 + sigma_0**2)
+
+        return d_prime
