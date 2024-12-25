@@ -58,7 +58,7 @@ The project is modularized into the following components:
 ## Steps
 
 1. Ensure Python is installed on your system.
-2. **Prepare Dataset**: Place your dataset as zip files under the **Dataset/** folder.
+2. **Prepare Dataset**: Create a folder **Dataset** and place your dataset as zip files under the **Dataset/** folder.
 3. **Run the main script:**
     ```bash
     python main.py
