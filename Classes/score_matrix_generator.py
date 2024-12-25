@@ -1,5 +1,5 @@
 import numpy as np
-from similarity_calculator import SimilarityCalculator
+from Classes.similarity_calculator import SimilarityCalculator
 
 class ScoreMatrixGenerator:
     def __init__(self):

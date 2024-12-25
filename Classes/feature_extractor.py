@@ -58,7 +58,7 @@ class FeatureExtractor:
                 try:
                     features[counter] = self.preprocess(image_path).tolist()
                 except FileNotFoundError:
-                    print(f"file not found:" {image_path})
+                    print(f"file not found:{image_path}")
                 except ValueError as e: 
                     print(f"Error processing {image_path} as {e}")
 
