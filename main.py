@@ -42,6 +42,28 @@ def main():
     feature_dict_probe_file = "probe.json"
     features_dict_probe = load_or_generate(feature_dict_probe_file, feature_extractor.extract_features, extract_path_probe, 100, ['_img2.pgm', '_img3.pgm'])
 
+    #Generate random vectors if not already done
+    #Create an instance of RandomVectorGenerator
+    random_vector_generator = RandomVectorGenerator()
+    random_vectors_file = "random_vector.json"
+    random_vectors = load_or_generate(random_vectors_file, random_vector_generator.generate, 250, 50)
+
+    #Generate hashed gallery and probe data if not already done
+    hashed_gallery_file = "hashed_gallery.json"
+    hashed_gallery = load_or_generate(hashed_gallery_file, Hasher.generate_hash, features_dict_gallery, random_vectors)
+
+    hashed_probe_file = "hashed_probe,json"
+    hashed_probe = load_or_generate(hashed_probe_file, Hasher.generate_hash, features_dict_probe, random_vectors)
+
+    #Generate score matrix if not already done
+    #Create an instance of ScoreMatrixGenerator
+    score_matrix_generator = ScoreMatrixGenerator()
+    score_matrix_file = "score_matrix.json"
+    score_matrix = load_or_generate(score_matrix_file, score_matrix_generator.generate, hashed_gallery, hashed_probe)
+
+    #Extract genuine and impostor scores directly from the above instance
+    genuine_scores = score_matrix_generator.genuine_scores
+    impostor_scores = score_matrix_generator.impostor_scores
     
 # Main function
 if __name__ == "__main__":
